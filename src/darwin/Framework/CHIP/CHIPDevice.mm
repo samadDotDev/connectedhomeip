@@ -1394,7 +1394,7 @@ void SubscriptionCallback::OnReportBegin()
     mEventReports = [NSMutableArray new];
 }
 
-// Reports attribute and event data if exists
+// Reports attribute and event data if any exists
 void SubscriptionCallback::ReportData()
 {
     __block NSArray * attributeReports = mAttributeReports;
