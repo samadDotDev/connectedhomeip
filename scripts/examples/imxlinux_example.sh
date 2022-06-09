@@ -31,7 +31,7 @@ fi
 env
 
 entries=$(ls "$IMX_SDK_ROOT")
-for entry in $entries; do
+for entry in "$entries"; do
     if [ "$(echo "$entry" | grep -E "^environment-setup-")" != "" ]; then
         env_setup_script=$entry
         break
