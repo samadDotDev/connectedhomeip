@@ -18,6 +18,7 @@
 
 #include "FabricSyncCommand.h"
 #include <commands/common/RemoteDataModelLogger.h>
+#include <commands/interactive/InteractiveCommands.h>
 #include <thread>
 #include <unistd.h>
 
@@ -27,6 +28,17 @@
 
 using namespace ::chip;
 
+namespace {
+
+constexpr uint16_t kRetryIntervalS = 3;
+
+void PairSyncedDevice(System::Layer * systemLayer, void * appState)
+{
+    PushCommand("pairing onnetwork 3 20202021");
+}
+
+} // namespace
+
 CHIP_ERROR FabricSyncAddDeviceCommand::RunCommand(NodeId remoteId)
 {
 #if defined(PW_RPC_ENABLED)
@@ -35,4 +47,13 @@ CHIP_ERROR FabricSyncAddDeviceCommand::RunCommand(NodeId remoteId)
 #else
     return CHIP_ERROR_NOT_IMPLEMENTED;
 #endif
+}
+
+CHIP_ERROR FabricSyncDeviceCommand::RunCommand(NodeId remoteId)
+{
+    PushCommand("pairing open-commissioning-window 1 0 300 1000 3840");
+
+    DeviceLayer::SystemLayer().StartTimer(System::Clock::Seconds16(kRetryIntervalS), PairSyncedDevice, nullptr);
+
+    return CHIP_NO_ERROR;
 }

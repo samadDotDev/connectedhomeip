@@ -30,6 +30,10 @@
 
 #include <string>
 
+#if defined(PW_RPC_ENABLED)
+#include <rpc/RpcClient.h>
+#endif
+
 using namespace ::chip;
 using namespace ::chip::Controller;
 
@@ -390,6 +394,10 @@ void PairingCommand::OnCommissioningComplete(NodeId nodeId, CHIP_ERROR err)
     if (err == CHIP_NO_ERROR)
     {
         ChipLogProgress(NotSpecified, "Device commissioning completed with success");
+
+#if defined(PW_RPC_ENABLED)
+        AddSynchronizedDevice(nodeId);
+#endif
     }
     else
     {

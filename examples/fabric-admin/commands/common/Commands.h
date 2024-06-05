@@ -45,6 +45,8 @@ public:
     int Run(int argc, char ** argv);
     int RunInteractive(const char * command, const chip::Optional<char *> & storageDirectory, bool advertiseOperational);
 
+    Command * GetCommandByName(std::string commandName);
+
 private:
     struct CommandSet
     {

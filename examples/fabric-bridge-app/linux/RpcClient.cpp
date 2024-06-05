@@ -36,11 +36,39 @@ using namespace chip;
 namespace {
 
 // Constants
+constexpr uint32_t kRpcTimeoutMs     = 1000;
 constexpr uint32_t kDefaultChannelId = 1;
 
 // Fabric Admin Client
 rpc::pw_rpc::nanopb::FabricAdmin::Client fabricAdminClient(rpc::client::GetDefaultRpcClient(), kDefaultChannelId);
 pw::rpc::NanopbUnaryReceiver<::chip_rpc_OperationStatus> openCommissioningWindowCall;
+
+template <typename CallType>
+CHIP_ERROR WaitForResponse(CallType & call)
+{
+    if (!call.active())
+    {
+        return CHIP_ERROR_INTERNAL;
+    }
+
+    // Wait for the response or timeout
+    uint32_t elapsedTimeMs     = 0;
+    const uint32_t sleepTimeMs = 100;
+
+    while (call.active() && elapsedTimeMs < kRpcTimeoutMs)
+    {
+        usleep(sleepTimeMs * 1000);
+        elapsedTimeMs += sleepTimeMs;
+    }
+
+    if (elapsedTimeMs >= kRpcTimeoutMs)
+    {
+        ChipLogError(NotSpecified, "RPC Response timed out!");
+        return CHIP_ERROR_TIMEOUT;
+    }
+
+    return CHIP_NO_ERROR;
+}
 
 // Callback function to be called when the RPC response is received
 void OnOpenCommissioningWindowCompleted(const chip_rpc_OperationStatus & response, pw::Status status)
@@ -84,5 +112,5 @@ CHIP_ERROR OpenCommissioningWindow(NodeId nodeId)
         return CHIP_ERROR_INTERNAL;
     }
 
-    return CHIP_NO_ERROR;
+    return WaitForResponse(openCommissioningWindowCall);
 }

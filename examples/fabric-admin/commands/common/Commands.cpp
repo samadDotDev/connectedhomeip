@@ -346,6 +346,21 @@ Commands::CommandSetMap::iterator Commands::GetCommandSet(std::string commandSet
     return mCommandSets.end();
 }
 
+Command * Commands::GetCommandByName(std::string commandName)
+{
+    for (auto & commandSetPair : mCommandSets)
+    {
+        for (auto & command : commandSetPair.second.commands)
+        {
+            if (command->GetName() == commandName)
+            {
+                return command.get();
+            }
+        }
+    }
+    return nullptr;
+}
+
 Command * Commands::GetCommand(CommandsVector & commands, std::string commandName)
 {
     for (auto & command : commands)
