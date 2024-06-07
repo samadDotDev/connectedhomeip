@@ -33,11 +33,33 @@ CHIP_ERROR OpenCommissioningWindowCommand::RunCommand()
 
     if (mCommissioningWindowOption == Controller::CommissioningWindowOpener::CommissioningWindowOption::kTokenWithRandomPIN)
     {
+        CHIP_ERROR err = CHIP_NO_ERROR;
         SetupPayload ignored;
-        return mWindowOpener->OpenCommissioningWindow(mNodeId, System::Clock::Seconds16(mCommissioningWindowTimeout), mIteration,
-                                                      mDiscriminator, NullOptional, NullOptional,
-                                                      &mOnOpenCommissioningWindowCallback, ignored,
-                                                      /* readVIDPIDAttributes */ true);
+
+        if (mEndpointId == kRootEndpointId)
+        {
+            err = mWindowOpener->OpenCommissioningWindow(mNodeId, System::Clock::Seconds16(mCommissioningWindowTimeout), mIteration,
+                                                         mDiscriminator, NullOptional, NullOptional,
+                                                         &mOnOpenCommissioningWindowCallback, ignored,
+                                                         /* readVIDPIDAttributes */ true);
+        }
+        else
+        {
+            Controller::CommissioningWindowOpener::CommissioningWindowParams params = {
+                .deviceId      = mNodeId,
+                .endpointId    = mEndpointId,
+                .timeout       = System::Clock::Seconds16(mCommissioningWindowTimeout),
+                .iteration     = mIteration,
+                .discriminator = mDiscriminator,
+                .setupPIN      = NullOptional,
+                .salt          = NullOptional,
+                .callback      = &mOnOpenCommissioningWindowCallback,
+            };
+
+            err = mWindowOpener->OpenCommissioningWindow(params, ignored);
+        }
+
+        return err;
     }
 
     ChipLogError(NotSpecified, "Unknown commissioning window option: %d", to_underlying(mCommissioningWindowOption));

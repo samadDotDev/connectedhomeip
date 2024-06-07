@@ -147,8 +147,8 @@ pw::Status FabricBridge::AddSynchronizedDevice(const chip_rpc_SynchronizedDevice
     device->SetReachable(true);
 
     // Add light -> will be mapped to ZCL endpoints 3
-    GetDeviceManager()->AddDeviceEndpoint(device, &bridgedLightEndpoint, Span<const EmberAfDeviceType>(gBridgedOnOffDeviceTypes),
-                                          Span<DataVersion>(gLightDataVersions), 1);
+    DeviceMgr().AddDeviceEndpoint(device, &bridgedLightEndpoint, Span<const EmberAfDeviceType>(gBridgedOnOffDeviceTypes),
+                                  Span<DataVersion>(gLightDataVersions), 1);
 
     return pw::OkStatus();
 }

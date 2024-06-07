@@ -31,6 +31,7 @@ public:
         mOnOpenBasicCommissioningWindowCallback(OnOpenBasicCommissioningWindowResponse, this)
     {
         AddArgument("node-id", 0, UINT64_MAX, &mNodeId, "Node to send command to.");
+        AddArgument("endpoint-id", 0, UINT16_MAX, &mEndpointId, "Endpoint to send command to.");
         AddArgument("option", 0, 2, &mCommissioningWindowOption,
                     "1 to use Enhanced Commissioning Method.\n  0 to use Basic Commissioning Method.");
         AddArgument("window-timeout", 0, UINT16_MAX, &mCommissioningWindowTimeout,
@@ -50,6 +51,7 @@ public:
 
 private:
     NodeId mNodeId;
+    chip::EndpointId mEndpointId;
     chip::Controller::CommissioningWindowOpener::CommissioningWindowOption mCommissioningWindowOption;
     uint16_t mCommissioningWindowTimeout;
     uint32_t mIteration;

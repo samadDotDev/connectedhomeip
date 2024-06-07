@@ -420,6 +420,14 @@
         },
 
         {
+          "name": "Bridge App (Linux)",
+          "type": "lldb",
+          "request": "launch",
+          "program": "${workspaceFolder}/out/debug/standalone/chip-bridge-app",
+          "cwd": "${workspaceFolder}"
+        },
+
+        {
             "name": "OTA Requestor App (Linux)",
             "type": "lldb",
             "request": "launch",

@@ -51,7 +51,7 @@ CHIP_ERROR FabricSyncAddDeviceCommand::RunCommand(NodeId remoteId)
 
 CHIP_ERROR FabricSyncDeviceCommand::RunCommand(NodeId remoteId)
 {
-    PushCommand("pairing open-commissioning-window 1 0 300 1000 3840");
+    PushCommand("pairing open-commissioning-window 1 3 1 300 1000 3840");
 
     DeviceLayer::SystemLayer().StartTimer(System::Clock::Seconds16(kRetryIntervalS), PairSyncedDevice, nullptr);
 

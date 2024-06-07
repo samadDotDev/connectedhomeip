@@ -119,7 +119,7 @@ void AdministratorCommissioningCommandHandler::InvokeCommand(HandlerContext & ha
     EndpointId endpointId = handlerContext.mRequestPath.mEndpointId;
     ChipLogProgress(NotSpecified, "Received command to open commissioning window on Endpoind: %d", endpointId);
 
-    if (handlerContext.mRequestPath.mCommandId != Commands::OpenBasicCommissioningWindow::Id)
+    if (handlerContext.mRequestPath.mCommandId != Commands::OpenCommissioningWindow::Id || endpointId == kRootEndpointId)
     {
         // Normal error handling
         return;
