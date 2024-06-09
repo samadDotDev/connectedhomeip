@@ -19,6 +19,7 @@
 #include "FabricSyncCommand.h"
 #include <commands/common/RemoteDataModelLogger.h>
 #include <commands/interactive/InteractiveCommands.h>
+#include <setup_payload/ManualSetupPayloadGenerator.h>
 #include <thread>
 #include <unistd.h>
 
@@ -30,12 +31,8 @@ using namespace ::chip;
 
 namespace {
 
-constexpr uint16_t kRetryIntervalS = 3;
-
-void PairSyncedDevice(System::Layer * systemLayer, void * appState)
-{
-    PushCommand("pairing onnetwork 3 20202021");
-}
+constexpr uint16_t kRetryIntervalS      = 3;
+constexpr uint16_t kMaxManaulCodeLength = 11;
 
 } // namespace
 
@@ -49,11 +46,42 @@ CHIP_ERROR FabricSyncAddDeviceCommand::RunCommand(NodeId remoteId)
 #endif
 }
 
-CHIP_ERROR FabricSyncDeviceCommand::RunCommand(NodeId remoteId)
+void FabricSyncDeviceCommand::OnCommissioningWindowOpened(NodeId deviceId, CHIP_ERROR err, chip::SetupPayload payload)
 {
-    PushCommand("pairing open-commissioning-window 1 3 1 300 1000 3840");
+    if (err == CHIP_NO_ERROR)
+    {
+        char payloadBuffer[kMaxManaulCodeLength + 1];
+        MutableCharSpan manualCode(payloadBuffer);
+        CHIP_ERROR error = ManualSetupPayloadGenerator(payload).payloadDecimalStringRepresentation(manualCode);
+        if (error == CHIP_NO_ERROR)
+        {
+            char command[64];
+            snprintf(command, sizeof(command), "pairing code 3 %s", payloadBuffer);
+            PushCommand(command);
+        }
+        else
+        {
+            ChipLogError(NotSpecified, "Unable to generate manual code for setup payload: %" CHIP_ERROR_FORMAT, error.Format());
+        }
+    }
+}
 
-    DeviceLayer::SystemLayer().StartTimer(System::Clock::Seconds16(kRetryIntervalS), PairSyncedDevice, nullptr);
+CHIP_ERROR FabricSyncDeviceCommand::RunCommand(EndpointId remoteId)
+{
+    char command[64];
+    snprintf(command, sizeof(command), "pairing open-commissioning-window 1 %d 1 300 1000 3840", remoteId);
+
+    OpenCommissioningWindowCommand * openCommand =
+        static_cast<OpenCommissioningWindowCommand *>(CommandMgr().GetCommandByName("pairing", "open-commissioning-window"));
+
+    if (openCommand == nullptr)
+    {
+        return CHIP_ERROR_UNINITIALIZED;
+    }
+
+    openCommand->RegisterDelegate(this);
+
+    PushCommand(command);
 
     return CHIP_NO_ERROR;
 }

@@ -128,9 +128,15 @@ void AdministratorCommissioningCommandHandler::InvokeCommand(HandlerContext & ha
     handlerContext.SetCommandHandled();
     Status status = Status::Success;
 
-    OpenCommissioningWindow(3);
-
-    ChipLogProgress(NotSpecified, "Commissioning window is now open");
+    if (OpenCommissioningWindow(3) == CHIP_NO_ERROR)
+    {
+        ChipLogProgress(NotSpecified, "Commissioning window is now open");
+    }
+    else
+    {
+        status = Status::Failure;
+        ChipLogProgress(NotSpecified, "Commissioning window is failed to open");
+    }
 
     handlerContext.mCommandHandler.AddStatus(handlerContext.mRequestPath, status);
 }

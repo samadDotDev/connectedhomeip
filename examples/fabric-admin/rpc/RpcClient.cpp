@@ -112,5 +112,5 @@ CHIP_ERROR AddSynchronizedDevice(chip::NodeId nodeId)
         return CHIP_ERROR_INTERNAL;
     }
 
-    return CHIP_NO_ERROR;
+    return WaitForResponse(addSynchronizedDeviceCall);
 }

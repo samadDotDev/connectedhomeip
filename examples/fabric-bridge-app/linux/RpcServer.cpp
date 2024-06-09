@@ -104,6 +104,13 @@ DECLARE_DYNAMIC_ATTRIBUTE(BridgedDeviceBasicInformation::Attributes::NodeLabel::
     DECLARE_DYNAMIC_ATTRIBUTE(BridgedDeviceBasicInformation::Attributes::FeatureMap::Id, BITMAP32, 4, 0), /* feature map */
     DECLARE_DYNAMIC_ATTRIBUTE_LIST_END();
 
+// Declare Administrator Commissioning cluster attributes
+DECLARE_DYNAMIC_ATTRIBUTE_LIST_BEGIN(AdministratorCommissioningAttrs)
+DECLARE_DYNAMIC_ATTRIBUTE(AdministratorCommissioning::Attributes::WindowStatus::Id, ENUM8, 1, 0),              /* NodeLabel */
+    DECLARE_DYNAMIC_ATTRIBUTE(AdministratorCommissioning::Attributes::AdminFabricIndex::Id, FABRIC_IDX, 1, 0), /* Reachable */
+    DECLARE_DYNAMIC_ATTRIBUTE(AdministratorCommissioning::Attributes::AdminVendorId::Id, VENDOR_ID, 2, 0),     /* Reachable */
+    DECLARE_DYNAMIC_ATTRIBUTE_LIST_END();
+
 // Declare Cluster List for Bridged Light endpoint
 // TODO: It's not clear whether it would be better to get the command lists from
 // the ZAP config on our last fixed endpoint instead.
@@ -117,18 +124,26 @@ constexpr CommandId onOffIncomingCommands[] = {
     kInvalidCommandId,
 };
 
+constexpr CommandId administratorCommissioningCommands[] = {
+    app::Clusters::AdministratorCommissioning::Commands::OpenCommissioningWindow::Id,
+    app::Clusters::AdministratorCommissioning::Commands::OpenBasicCommissioningWindow::Id,
+    app::Clusters::AdministratorCommissioning::Commands::RevokeCommissioning::Id,
+    kInvalidCommandId,
+};
+
 DECLARE_DYNAMIC_CLUSTER_LIST_BEGIN(bridgedLightClusters)
 DECLARE_DYNAMIC_CLUSTER(OnOff::Id, onOffAttrs, ZAP_CLUSTER_MASK(SERVER), onOffIncomingCommands, nullptr),
     DECLARE_DYNAMIC_CLUSTER(Descriptor::Id, descriptorAttrs, ZAP_CLUSTER_MASK(SERVER), nullptr, nullptr),
-    DECLARE_DYNAMIC_CLUSTER(BridgedDeviceBasicInformation::Id, bridgedDeviceBasicAttrs, ZAP_CLUSTER_MASK(SERVER), nullptr,
-                            nullptr) DECLARE_DYNAMIC_CLUSTER_LIST_END;
+    DECLARE_DYNAMIC_CLUSTER(BridgedDeviceBasicInformation::Id, bridgedDeviceBasicAttrs, ZAP_CLUSTER_MASK(SERVER), nullptr, nullptr),
+    DECLARE_DYNAMIC_CLUSTER(AdministratorCommissioning::Id, AdministratorCommissioningAttrs, ZAP_CLUSTER_MASK(SERVER),
+                            administratorCommissioningCommands, nullptr) DECLARE_DYNAMIC_CLUSTER_LIST_END;
 
 // Declare Bridged Light endpoint
 DECLARE_DYNAMIC_ENDPOINT(bridgedLightEndpoint, bridgedLightClusters);
 DataVersion gLightDataVersions[ArraySize(bridgedLightClusters)];
 
-const EmberAfDeviceType gBridgedOnOffDeviceTypes[] = { { DEVICE_TYPE_LO_ON_OFF_LIGHT, DEVICE_VERSION_DEFAULT },
-                                                       { DEVICE_TYPE_BRIDGED_NODE, DEVICE_VERSION_DEFAULT } };
+const EmberAfDeviceType gBridgedDeviceTypes[] = { { DEVICE_TYPE_LO_ON_OFF_LIGHT, DEVICE_VERSION_DEFAULT },
+                                                  { DEVICE_TYPE_BRIDGED_NODE, DEVICE_VERSION_DEFAULT } };
 
 #if defined(PW_RPC_FABRIC_BRIDGE_SERVICE) && PW_RPC_FABRIC_BRIDGE_SERVICE
 class FabricBridge final : public chip::rpc::FabricBridge
@@ -146,8 +161,8 @@ pw::Status FabricBridge::AddSynchronizedDevice(const chip_rpc_SynchronizedDevice
     device->SetLocation("Office");
     device->SetReachable(true);
 
-    // Add light -> will be mapped to ZCL endpoints 3
-    DeviceMgr().AddDeviceEndpoint(device, &bridgedLightEndpoint, Span<const EmberAfDeviceType>(gBridgedOnOffDeviceTypes),
+    // Add light -> will be mapped to ZCL endpoints 2
+    DeviceMgr().AddDeviceEndpoint(device, &bridgedLightEndpoint, Span<const EmberAfDeviceType>(gBridgedDeviceTypes),
                                   Span<DataVersion>(gLightDataVersions), 1);
 
     return pw::OkStatus();

@@ -126,7 +126,7 @@ CHIP_ERROR CommissioningWindowOpener::OpenCommissioningWindowImpl(const Commissi
     mCommissioningWindowCallback      = params.callback;
     mBasicCommissioningWindowCallback = nullptr;
     mNodeId                           = params.deviceId;
-    mTargetEndpointId                 = kRootEndpointId;
+    mTargetEndpointId                 = params.endpointId;
     mCommissioningWindowTimeout       = params.timeout;
     mPBKDFIterations                  = params.iteration;
 

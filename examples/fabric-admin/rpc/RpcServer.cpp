@@ -40,7 +40,7 @@ public:
     {
         NodeId nodeId = request.node_id;
         ChipLogProgress(NotSpecified, "Received OpenCommissioningWindow request: 0x%lx", nodeId);
-        PushCommand("pairing open-commissioning-window 3 0 300 1000 3840");
+        PushCommand("pairing open-commissioning-window 3 0 1 300 1000 3840");
 
         response.success = true;
 

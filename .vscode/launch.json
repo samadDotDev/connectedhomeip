@@ -420,11 +420,11 @@
         },
 
         {
-          "name": "Bridge App (Linux)",
-          "type": "lldb",
-          "request": "launch",
-          "program": "${workspaceFolder}/out/debug/standalone/chip-bridge-app",
-          "cwd": "${workspaceFolder}"
+            "name": "Bridge App (Linux)",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/out/debug/standalone/chip-bridge-app",
+            "cwd": "${workspaceFolder}"
         },
 
         {

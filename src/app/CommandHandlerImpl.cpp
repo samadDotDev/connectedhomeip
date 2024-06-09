@@ -388,9 +388,9 @@ Status CommandHandlerImpl::ProcessCommandDataIB(CommandDataIB::Parser & aCommand
         Status commandExists = mpCallback->CommandExists(concretePath);
         if (commandExists != Status::Success)
         {
-            ChipLogDetail(DataManagement, "No command " ChipLogFormatMEI " in Cluster " ChipLogFormatMEI " on Endpoint 0x%x",
-                          ChipLogValueMEI(concretePath.mCommandId), ChipLogValueMEI(concretePath.mClusterId),
-                          concretePath.mEndpointId);
+            ChipLogDetail(
+                DataManagement, "yujuan: No command " ChipLogFormatMEI " in Cluster " ChipLogFormatMEI " on Endpoint 0x%x",
+                ChipLogValueMEI(concretePath.mCommandId), ChipLogValueMEI(concretePath.mClusterId), concretePath.mEndpointId);
             return FallibleAddStatus(concretePath, commandExists) != CHIP_NO_ERROR ? Status::Failure : Status::Success;
         }
     }

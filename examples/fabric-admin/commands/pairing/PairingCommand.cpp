@@ -393,7 +393,7 @@ void PairingCommand::OnCommissioningComplete(NodeId nodeId, CHIP_ERROR err)
 {
     if (err == CHIP_NO_ERROR)
     {
-        ChipLogProgress(NotSpecified, "Device commissioning completed with success");
+        fprintf(stderr, "New device with Node ID: 0x%lx has been successfully added.\n", nodeId);
 
 #if defined(PW_RPC_ENABLED)
         AddSynchronizedDevice(nodeId);
