@@ -121,14 +121,15 @@ void AdministratorCommissioningCommandHandler::InvokeCommand(HandlerContext & ha
 
     if (handlerContext.mRequestPath.mCommandId != Commands::OpenCommissioningWindow::Id || endpointId == kRootEndpointId)
     {
-        // Normal error handling
+        // Proceed with default handling in Administrator Commissioning Server
         return;
     }
 
     handlerContext.SetCommandHandled();
     Status status = Status::Success;
 
-    if (OpenCommissioningWindow(3) == CHIP_NO_ERROR)
+    Device * device = DeviceMgr().GetDevice(endpointId);
+    if (device != nullptr && OpenCommissioningWindow(device->GetNodeId()) == CHIP_NO_ERROR)
     {
         ChipLogProgress(NotSpecified, "Commissioning window is now open");
     }

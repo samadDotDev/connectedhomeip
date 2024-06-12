@@ -38,15 +38,10 @@ public:
      * dynamic endpoint; otherwise, it returns -1.
      *
      * @param dev A pointer to the device to be added.
-     * @param ep A pointer to the endpoint type.
-     * @param deviceTypeList A span containing the list of device types.
-     * @param dataVersionStorage A span containing the data version storage.
      * @param parentEndpointId The parent endpoint ID. Defaults to an invalid endpoint ID.
      * @return int The index of the dynamic endpoint if successful, -1 otherwise.
      */
-    int AddDeviceEndpoint(Device * dev, EmberAfEndpointType * ep, const chip::Span<const EmberAfDeviceType> & deviceTypeList,
-                          const chip::Span<chip::DataVersion> & dataVersionStorage,
-                          chip::EndpointId parentEndpointId = chip::kInvalidEndpointId);
+    int AddDeviceEndpoint(Device * dev, chip::EndpointId parentEndpointId = chip::kInvalidEndpointId);
 
     /**
      * @brief Removes a device from a dynamic endpoint.
@@ -61,7 +56,16 @@ public:
      */
     int RemoveDeviceEndpoint(Device * dev);
 
-    Device * GetDevice(uint16_t index) const;
+    /**
+     * @brief Gets a device from its endpoint ID.
+     *
+     * This function iterates through the available devices and returns the device that matches the
+     * specified endpoint ID. If no device matches the endpoint ID, it returns nullptr.
+     *
+     * @param endpointId The endpoint ID of the device to be retrieved.
+     * @return Device* A pointer to the device if found, nullptr otherwise.
+     */
+    Device * GetDevice(chip::EndpointId endpointId) const;
 
 private:
     friend DeviceManager & DeviceMgr();
