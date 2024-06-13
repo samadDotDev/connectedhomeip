@@ -19,6 +19,7 @@
 #include "FabricSyncCommand.h"
 #include <commands/common/RemoteDataModelLogger.h>
 #include <commands/interactive/InteractiveCommands.h>
+#include <device_manager/DeviceManager.h>
 #include <setup_payload/ManualSetupPayloadGenerator.h>
 #include <thread>
 #include <unistd.h>
@@ -56,7 +57,7 @@ void FabricSyncDeviceCommand::OnCommissioningWindowOpened(NodeId deviceId, CHIP_
         if (error == CHIP_NO_ERROR)
         {
             char command[64];
-            snprintf(command, sizeof(command), "pairing code 3 %s", payloadBuffer);
+            snprintf(command, sizeof(command), "pairing code %ld %s", DeviceMgr().GetNextAvailableNodeId(), payloadBuffer);
             PushCommand(command);
         }
         else

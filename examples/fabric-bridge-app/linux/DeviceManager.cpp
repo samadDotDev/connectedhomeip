@@ -154,8 +154,9 @@ int DeviceManager::AddDeviceEndpoint(Device * dev, chip::EndpointId parentEndpoi
                     emberAfSetDynamicEndpoint(index, mCurrentEndpointId, ep, dataVersionStorage, deviceTypeList, parentEndpointId);
                 if (err == CHIP_NO_ERROR)
                 {
-                    ChipLogProgress(NotSpecified, "yujuan: Added device %s to dynamic endpoint %d (index=%d)", dev->GetName(),
-                                    mCurrentEndpointId, index);
+                    ChipLogProgress(NotSpecified,
+                                    "Added device with nodeId=0x" ChipLogFormatX64 " to dynamic endpoint %d (index=%d)",
+                                    ChipLogValueX64(dev->GetNodeId()), mCurrentEndpointId, index);
                     return index;
                 }
                 if (err != CHIP_ERROR_ENDPOINT_EXISTS)

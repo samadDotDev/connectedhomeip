@@ -128,6 +128,7 @@ void AdministratorCommissioningCommandHandler::InvokeCommand(HandlerContext & ha
     handlerContext.SetCommandHandled();
     Status status = Status::Success;
 
+#if defined(PW_RPC_FABRIC_BRIDGE_SERVICE) && PW_RPC_FABRIC_BRIDGE_SERVICE
     Device * device = DeviceMgr().GetDevice(endpointId);
     if (device != nullptr && OpenCommissioningWindow(device->GetNodeId()) == CHIP_NO_ERROR)
     {
@@ -138,6 +139,7 @@ void AdministratorCommissioningCommandHandler::InvokeCommand(HandlerContext & ha
         status = Status::Failure;
         ChipLogProgress(NotSpecified, "Commissioning window is failed to open");
     }
+#endif // defined(PW_RPC_FABRIC_BRIDGE_SERVICE) && PW_RPC_FABRIC_BRIDGE_SERVICE
 
     handlerContext.mCommandHandler.AddStatus(handlerContext.mRequestPath, status);
 }
