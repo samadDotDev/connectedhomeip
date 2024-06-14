@@ -18,30 +18,58 @@
 
 #pragma once
 
+#include <app-common/zap-generated/cluster-objects.h>
+#include <commands/pairing/PairingCommand.h>
 #include <platform/CHIPDeviceLayer.h>
 
-class DeviceManager
+#include <set>
+
+class Device
+{
+public:
+    Device(chip::NodeId nodeId, chip::EndpointId endpointId) : mNodeId(nodeId), mEndpointId(endpointId) {}
+
+    chip::NodeId GetNodeId() const { return mNodeId; }
+    chip::EndpointId GetEndpointId() const { return mEndpointId; }
+
+    bool operator<(const Device & other) const
+    {
+        return mNodeId < other.mNodeId || (mNodeId == other.mNodeId && mEndpointId < other.mEndpointId);
+    }
+
+private:
+    chip::NodeId mNodeId;
+    chip::EndpointId mEndpointId;
+};
+
+class DeviceManager : public PairingDelegate
 {
 public:
     DeviceManager() = default;
 
     void Init();
 
-    chip::NodeId GetNextAvailableNodeId()
-    {
-        mLastUsedNodeId++;
-        VerifyOrDieWithMsg(mLastUsedNodeId < std::numeric_limits<chip::NodeId>::max(), NotSpecified, "No more available NodeIds.");
-
-        return mLastUsedNodeId;
-    }
-
-    chip::NodeId GetBridgeNodeId() const { return mBridgeNodeId; }
-
-    void SetBridgeNodeId(chip::NodeId bridgeNodeId) { mBridgeNodeId = bridgeNodeId; }
+    chip::NodeId GetNextAvailableNodeId();
 
     chip::NodeId GetRemoteBridgeNodeId() const { return mRemoteBridgeNodeId; }
 
+    void UpdateLastUsedNodeId(chip::NodeId nodeId);
+
     void SetRemoteBridgeNodeId(chip::NodeId remoteBridgeNodeId) { mRemoteBridgeNodeId = remoteBridgeNodeId; }
+
+    bool IsAutoSyncEnabled() const { return mAutoSyncEnabled; }
+
+    bool IsFabricSyncReady() const { return mRemoteBridgeNodeId != chip::kUndefinedNodeId; }
+
+    void EnableAutoSync(bool state) { mAutoSyncEnabled = state; }
+
+    void AddSyncedDevice(const Device & device);
+
+    void RemoveSyncedDevice(chip::NodeId nodeId);
+
+    void HanldeAttributeChange(const chip::app::ConcreteDataAttributePath & path, chip::TLV::TLVReader * data);
+
+    void OnDeviceRemoved(chip::NodeId deviceId, CHIP_ERROR err) override;
 
 private:
     friend DeviceManager & DeviceMgr();
@@ -49,8 +77,12 @@ private:
     static DeviceManager sInstance;
 
     chip::NodeId mLastUsedNodeId     = 0;
-    chip::NodeId mBridgeNodeId       = chip::kUndefinedNodeId;
     chip::NodeId mRemoteBridgeNodeId = chip::kUndefinedNodeId;
+    std::set<Device> mSyncedDevices;
+    bool mAutoSyncEnabled = false;
+
+    Device * FindDeviceByEndpoint(chip::EndpointId endpointId);
+    Device * FindDeviceByNode(chip::NodeId nodeId);
 };
 
 /**
