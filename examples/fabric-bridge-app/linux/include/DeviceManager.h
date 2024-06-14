@@ -27,6 +27,12 @@ class DeviceManager
 public:
     DeviceManager() = default;
 
+    /**
+     * @brief Initializes the DeviceManager.
+     *
+     * This function sets up the initial state of the DeviceManager, clearing
+     * any existing devices and setting the starting dynamic endpoint ID.
+     */
     void Init();
 
     /**
@@ -66,6 +72,30 @@ public:
      * @return Device* A pointer to the device if found, nullptr otherwise.
      */
     Device * GetDevice(chip::EndpointId endpointId) const;
+
+    /**
+     * @brief Gets a device from its NodeId.
+     *
+     * This function iterates through the available devices and returns the device that matches the
+     * specified NodeId. If no device matches the NodeId, it returns nullptr.
+     *
+     * @param nodeId The NodeId of the device to be retrieved.
+     * @return Device* A pointer to the device if found, nullptr otherwise.
+     */
+    Device * GetDeviceByNodeId(chip::NodeId nodeId) const;
+
+    /**
+     * @brief Removes a device from a dynamic endpoint by its NodeId.
+     *
+     * This function attempts to remove a device from a dynamic endpoint by iterating through the
+     * available endpoints and checking if the device matches the specified NodeId. If the device is
+     * found, it clears the dynamic endpoint, logs the removal, and returns the index of the removed
+     * endpoint. If the device is not found, it returns -1.
+     *
+     * @param nodeId The NodeId of the device to be removed.
+     * @return int The index of the removed dynamic endpoint if successful, -1 otherwise.
+     */
+    int RemoveDeviceByNodeId(chip::NodeId nodeId);
 
 private:
     friend DeviceManager & DeviceMgr();

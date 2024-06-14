@@ -33,36 +33,24 @@ public:
         VerifyOrDieWithMsg(mLastUsedNodeId < std::numeric_limits<chip::NodeId>::max(), NotSpecified, "No more available NodeIds.");
 
         return mLastUsedNodeId;
-    }    
-
-    chip::NodeId GetBridgeNodeId() const
-    {
-        return mBridgeNodeId;
     }
 
-    void SetBridgeNodeId(chip::NodeId bridgeNodeId)
-    {
-        mBridgeNodeId = bridgeNodeId;
-    }
+    chip::NodeId GetBridgeNodeId() const { return mBridgeNodeId; }
 
-    chip::NodeId GetRemoteBridgeNodeId() const
-    {
-        return mRemoteBridgeNodeId;
-    }
+    void SetBridgeNodeId(chip::NodeId bridgeNodeId) { mBridgeNodeId = bridgeNodeId; }
 
-    void SetRemoteBridgeNodeId(chip::NodeId remoteBridgeNodeId)
-    {
-        mRemoteBridgeNodeId = remoteBridgeNodeId;
-    }    
+    chip::NodeId GetRemoteBridgeNodeId() const { return mRemoteBridgeNodeId; }
+
+    void SetRemoteBridgeNodeId(chip::NodeId remoteBridgeNodeId) { mRemoteBridgeNodeId = remoteBridgeNodeId; }
 
 private:
     friend DeviceManager & DeviceMgr();
 
     static DeviceManager sInstance;
 
-    chip::NodeId mLastUsedNodeId = 0;
-    chip::NodeId mBridgeNodeId = chip::kUndefinedNodeId;
-    chip::NodeId mRemoteBridgeNodeId = chip::kUndefinedNodeId;    
+    chip::NodeId mLastUsedNodeId     = 0;
+    chip::NodeId mBridgeNodeId       = chip::kUndefinedNodeId;
+    chip::NodeId mRemoteBridgeNodeId = chip::kUndefinedNodeId;
 };
 
 /**

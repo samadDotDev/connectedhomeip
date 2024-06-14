@@ -43,6 +43,7 @@ class FabricBridge final : public chip::rpc::FabricBridge
 {
 public:
     pw::Status AddSynchronizedDevice(const chip_rpc_SynchronizedDevice & request, pw_protobuf_Empty & response) override;
+    pw::Status RemoveSynchronizedDevice(const chip_rpc_SynchronizedDevice & request, pw_protobuf_Empty & response) override;
 };
 
 pw::Status FabricBridge::AddSynchronizedDevice(const chip_rpc_SynchronizedDevice & request, pw_protobuf_Empty & response)
@@ -53,8 +54,28 @@ pw::Status FabricBridge::AddSynchronizedDevice(const chip_rpc_SynchronizedDevice
     Device * device = new Device(nodeId);
     device->SetReachable(true);
 
-    // Add light -> will be mapped to ZCL endpoints 2
-    DeviceMgr().AddDeviceEndpoint(device, 1);
+    int result = DeviceMgr().AddDeviceEndpoint(device, 1);
+    if (result == -1)
+    {
+        delete device;
+        ChipLogError(NotSpecified, "Failed to add device with nodeId=0x" ChipLogFormatX64, ChipLogValueX64(nodeId));
+        return pw::Status::Unknown();
+    }
+
+    return pw::OkStatus();
+}
+
+pw::Status FabricBridge::RemoveSynchronizedDevice(const chip_rpc_SynchronizedDevice & request, pw_protobuf_Empty & response)
+{
+    NodeId nodeId = request.node_id;
+    ChipLogProgress(NotSpecified, "Received RemoveSynchronizedDevice: " ChipLogFormatX64, ChipLogValueX64(nodeId));
+
+    int result = DeviceMgr().RemoveDeviceByNodeId(nodeId);
+    if (result == -1)
+    {
+        ChipLogError(NotSpecified, "Failed to remove device with nodeId=0x" ChipLogFormatX64, ChipLogValueX64(nodeId));
+        return pw::Status::NotFound();
+    }
 
     return pw::OkStatus();
 }

@@ -23,10 +23,7 @@
 
 using namespace chip;
 
-namespace {
-
-
-} // namespace
+namespace {} // namespace
 
 // Define the static member
 DeviceManager DeviceManager::sInstance;

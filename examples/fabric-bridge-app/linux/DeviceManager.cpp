@@ -210,3 +210,32 @@ Device * DeviceManager::GetDevice(chip::EndpointId endpointId) const
     }
     return nullptr;
 }
+
+Device * DeviceManager::GetDeviceByNodeId(chip::NodeId nodeId) const
+{
+    for (uint8_t index = 0; index < CHIP_DEVICE_CONFIG_DYNAMIC_ENDPOINT_COUNT; ++index)
+    {
+        if (mDevices[index] && mDevices[index]->GetNodeId() == nodeId)
+        {
+            return mDevices[index];
+        }
+    }
+    return nullptr;
+}
+
+int DeviceManager::RemoveDeviceByNodeId(chip::NodeId nodeId)
+{
+    for (uint8_t index = 0; index < CHIP_DEVICE_CONFIG_DYNAMIC_ENDPOINT_COUNT; ++index)
+    {
+        if (mDevices[index] && mDevices[index]->GetNodeId() == nodeId)
+        {
+            DeviceLayer::StackLock lock;
+            EndpointId ep   = emberAfClearDynamicEndpoint(index);
+            mDevices[index] = nullptr;
+            ChipLogProgress(NotSpecified, "Removed device with NodeId=0x" ChipLogFormatX64 " from dynamic endpoint %d (index=%d)",
+                            ChipLogValueX64(nodeId), ep, index);
+            return index;
+        }
+    }
+    return -1;
+}

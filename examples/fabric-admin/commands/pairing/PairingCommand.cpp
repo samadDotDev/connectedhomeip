@@ -529,6 +529,10 @@ void PairingCommand::OnCurrentFabricRemove(void * context, NodeId nodeId, CHIP_E
     if (err == CHIP_NO_ERROR)
     {
         ChipLogProgress(NotSpecified, "Device unpair completed with success: " ChipLogFormatX64, ChipLogValueX64(nodeId));
+
+#if defined(PW_RPC_ENABLED)
+        RemoveSynchronizedDevice(nodeId);
+#endif
     }
     else
     {
