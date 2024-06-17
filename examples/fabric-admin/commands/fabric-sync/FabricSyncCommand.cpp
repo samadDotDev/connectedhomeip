@@ -33,8 +33,10 @@ using namespace ::chip;
 namespace {
 
 // Constants
-constexpr uint32_t kCommissionPrepareTimeMs = 1000;
+constexpr uint32_t kCommissionPrepareTimeMs = 500;
 constexpr uint16_t kMaxManaulCodeLength     = 11;
+constexpr uint16_t kSubscribeMinInterval    = 0;
+constexpr uint16_t kSubscribeMaxInterval    = 60;
 
 } // namespace
 
@@ -53,8 +55,9 @@ void FabricSyncAddBridgeCommand::OnCommissioningComplete(chip::NodeId deviceId, 
         ChipLogProgress(NotSpecified, "Successfully paired bridge device: NodeId: " ChipLogFormatX64,
                         ChipLogValueX64(mBridgeNodeId));
 
-        char command[64];
-        snprintf(command, sizeof(command), "descriptor subscribe parts-list 0 60 %ld 1", mBridgeNodeId);
+        char command[kMaxCommandSize];
+        snprintf(command, sizeof(command), "descriptor subscribe parts-list %d %d %ld %d", kSubscribeMinInterval,
+                 kSubscribeMaxInterval, mBridgeNodeId, kAggragatorEndpointId);
 
         PushCommand(command);
     }
@@ -76,8 +79,8 @@ CHIP_ERROR FabricSyncAddBridgeCommand::RunCommand(NodeId remoteId)
         return CHIP_NO_ERROR;
     }
 
-    char command[64];
-    snprintf(command, sizeof(command), "pairing onnetwork %ld 20202021", remoteId);
+    char command[kMaxCommandSize];
+    snprintf(command, sizeof(command), "pairing onnetwork %ld %d", remoteId, kSetupPinCode);
 
     PairingCommand * pairingCommand = static_cast<PairingCommand *>(CommandMgr().GetCommandByName("pairing", "onnetwork"));
 
@@ -89,7 +92,6 @@ CHIP_ERROR FabricSyncAddBridgeCommand::RunCommand(NodeId remoteId)
 
     pairingCommand->RegisterCommissioningDelegate(this);
     mBridgeNodeId = remoteId;
-    usleep(kCommissionPrepareTimeMs * 1000);
 
     PushCommand(command);
 
@@ -132,7 +134,7 @@ CHIP_ERROR FabricSyncRemoveBridgeCommand::RunCommand()
 
     mBridgeNodeId = bridgeNodeId;
 
-    char command[64];
+    char command[kMaxCommandSize];
     snprintf(command, sizeof(command), "pairing unpair %ld", mBridgeNodeId);
 
     PairingCommand * pairingCommand = static_cast<PairingCommand *>(CommandMgr().GetCommandByName("pairing", "unpair"));
@@ -159,7 +161,7 @@ void FabricSyncDeviceCommand::OnCommissioningWindowOpened(NodeId deviceId, CHIP_
         CHIP_ERROR error = ManualSetupPayloadGenerator(payload).payloadDecimalStringRepresentation(manualCode);
         if (error == CHIP_NO_ERROR)
         {
-            char command[64];
+            char command[kMaxCommandSize];
             NodeId nodeId = DeviceMgr().GetNextAvailableNodeId();
             snprintf(command, sizeof(command), "pairing code %ld %s", nodeId, payloadBuffer);
 
@@ -218,8 +220,9 @@ CHIP_ERROR FabricSyncDeviceCommand::RunCommand(EndpointId remoteId)
         return CHIP_NO_ERROR;
     }
 
-    char command[64];
-    snprintf(command, sizeof(command), "pairing open-commissioning-window 1 %d 1 300 1000 3840", remoteId);
+    char command[kMaxCommandSize];
+    snprintf(command, sizeof(command), "pairing open-commissioning-window %ld %d %d %d %d %d", DeviceMgr().GetRemoteBridgeNodeId(),
+             remoteId, kEnhancedCommissioningMethod, kWindowTimeout, kIteration, kDiscriminator);
 
     OpenCommissioningWindowCommand * openCommand =
         static_cast<OpenCommissioningWindowCommand *>(CommandMgr().GetCommandByName("pairing", "open-commissioning-window"));

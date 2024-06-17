@@ -20,6 +20,7 @@
 #include "pw_rpc_system_server/rpc_server.h"
 #include "pw_rpc_system_server/socket.h"
 
+#include <commands/fabric-sync/FabricSyncCommand.h>
 #include <commands/interactive/InteractiveCommands.h>
 #include <system/SystemClock.h>
 #include <thread>
@@ -42,7 +43,9 @@ public:
         ChipLogProgress(NotSpecified, "Received OpenCommissioningWindow request: 0x%lx", nodeId);
 
         char command[64];
-        snprintf(command, sizeof(command), "pairing open-commissioning-window %ld 0 1 300 1000 3840", nodeId);
+        snprintf(command, sizeof(command), "pairing open-commissioning-window %ld %d %d %d %d %d", nodeId, kRootEndpointId,
+                 kEnhancedCommissioningMethod, kWindowTimeout, kIteration, kDiscriminator);
+
         PushCommand(command);
 
         response.success = true;
