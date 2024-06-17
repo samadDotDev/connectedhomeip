@@ -72,16 +72,6 @@ public:
      * @return Device* A pointer to the device if found, nullptr otherwise.
      */
     Device * GetDevice(chip::EndpointId endpointId) const;
-    /**
-     * @brief Gets a device from its endpoint ID.
-     *
-     * This function iterates through the available devices and returns the device that matches the
-     * specified endpoint ID. If no device matches the endpoint ID, it returns nullptr.
-     *
-     * @param endpointId The endpoint ID of the device to be retrieved.
-     * @return Device* A pointer to the device if found, nullptr otherwise.
-     */
-    Device * GetDevice(chip::EndpointId endpointId) const;
 
     /**
      * @brief Gets a device from its NodeId.
