@@ -125,22 +125,42 @@ void AdministratorCommissioningCommandHandler::InvokeCommand(HandlerContext & ha
         return;
     }
 
+    chip::System::Clock::Seconds16 commissioningTimeout;
+    chip::ByteSpan pakeVerifier;
+    uint16_t discriminator;
+    uint32_t iterations;
+    chip::ByteSpan salt;
+    Device * device = nullptr;
+    Status status = Status::Failure;
+
+
+    Commands::OpenCommissioningWindow::DecodableType commandData;
+    CHIP_ERROR tlvError = DataModel::Decode(handlerContext.mPayload, commandData);
+    SuccessOrExit(tlvError);
+
+    commissioningTimeout = System::Clock::Seconds16(commandData.commissioningTimeout);
+    pakeVerifier       = commandData.PAKEPasscodeVerifier;
+    discriminator      = commandData.discriminator;
+    iterations         = commandData.iterations;
+    salt               = commandData.salt;
+    ChipLogProgress(NotSpecified, "Proxying OCW with discriminator %d and iterations %d", discriminator, iterations);
+
     handlerContext.SetCommandHandled();
-    Status status = Status::Success;
 
 #if defined(PW_RPC_FABRIC_BRIDGE_SERVICE) && PW_RPC_FABRIC_BRIDGE_SERVICE
-    Device * device = DeviceMgr().GetDevice(endpointId);
+    device = DeviceMgr().GetDevice(endpointId);
     if (device != nullptr && OpenCommissioningWindow(device->GetNodeId()) == CHIP_NO_ERROR)
     {
         ChipLogProgress(NotSpecified, "Commissioning window is now open");
+        status = Status::Success;
     }
     else
     {
-        status = Status::Failure;
-        ChipLogProgress(NotSpecified, "Commissioning window is failed to open");
+        ChipLogError(NotSpecified, "Commissioning window is failed to open");
     }
 #endif // defined(PW_RPC_FABRIC_BRIDGE_SERVICE) && PW_RPC_FABRIC_BRIDGE_SERVICE
 
+exit:
     handlerContext.mCommandHandler.AddStatus(handlerContext.mRequestPath, status);
 }
 
