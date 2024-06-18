@@ -35,18 +35,13 @@ CHIP_ERROR OpenCommissioningWindowCommand::RunCommand()
     {
         CHIP_ERROR err = CHIP_NO_ERROR;
         SetupPayload ignored;
-        const uint8_t payload[] = { 0x15, 0x36, 0x01, 0x15, 0x35, 0x01, 0x26, 0x00, 0x72, 0x4D, 0xDB, 0xCB,
-                                    0x37, 0x01, 0x24, 0x02, 0x00, 0x24, 0x03, 0x1F, 0x24, 0x04, 0x00 };
-        chip::ByteSpan payloadSpan(payload);
-        chip::Optional<unsigned int> setupPIN(20202021);
-        chip::Optional<chip::ByteSpan> salt(payloadSpan);
 
         if (mEndpointId == kRootEndpointId)
         {
             err =
                 mWindowOpener->OpenCommissioningWindow(mNodeId, System::Clock::Seconds16(mCommissioningWindowTimeout), mIteration,
-                                                       mDiscriminator, setupPIN, salt, &mOnOpenCommissioningWindowCallback, ignored,
-                                                       /* readVIDPIDAttributes */ true);
+                                                       mDiscriminator, chip::NullOptional, mVerifier, mSalt, 
+                                                       &mOnOpenCommissioningWindowCallback, ignored, /* readVIDPIDAttributes */ true);
         }
         else
         {
@@ -56,8 +51,9 @@ CHIP_ERROR OpenCommissioningWindowCommand::RunCommand()
                 .timeout       = System::Clock::Seconds16(mCommissioningWindowTimeout),
                 .iteration     = mIteration,
                 .discriminator = mDiscriminator,
-                .setupPIN      = setupPIN,
-                .salt          = salt,
+                .setupPIN      = chip::NullOptional,
+                .verifier      = mVerifier,
+                .salt          = mSalt,
                 .callback      = &mOnOpenCommissioningWindowCallback,
             };
 

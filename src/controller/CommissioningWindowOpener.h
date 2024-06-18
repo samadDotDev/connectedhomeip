@@ -51,6 +51,7 @@ public:
                                      // verifier to be used for this commissioning.
         uint16_t discriminator;      // The long discriminator for the DNS-SD advertisement.
         Optional<uint32_t> setupPIN; // The setup PIN to use, or NullOptional to use a randomly-generated one.
+        Optional<ByteSpan> verifier; // The PAKE passcode verifier, if provided, will be used instead of generating one from setup PIN code
         Optional<ByteSpan> salt; // The salt to use, or NullOptional to use a randomly-generated one. If provided, must be at least
                                  // kSpake2p_Min_PBKDF_Salt_Length bytes and at most kSpake2p_Max_PBKDF_Salt_Length bytes in length.
         Callback::Callback<OnOpenCommissioningWindow> *
@@ -99,6 +100,8 @@ public:
      *                          PAKE passcode verifier to be used for this commissioning.
      * @param[in] discriminator The long discriminator for the DNS-SD advertisement.
      * @param[in] setupPIN      The setup PIN to use, or NullOptional to use a randomly-generated one.
+     * @param[in] verifier      The PAKE passcode verifier to use, or NullOptional to 
+     *                          generate verifier based on PIN and other parameters.
      * @param[in] salt          The salt to use, or NullOptional to use a
      *                          randomly-generated one.  If provided, must be at
      *                          least kSpake2p_Min_PBKDF_Salt_Length bytes and
@@ -118,9 +121,9 @@ public:
      *                                 callback.
      */
     CHIP_ERROR OpenCommissioningWindow(NodeId deviceId, System::Clock::Seconds16 timeout, uint32_t iteration,
-                                       uint16_t discriminator, Optional<uint32_t> setupPIN, Optional<ByteSpan> salt,
-                                       Callback::Callback<OnOpenCommissioningWindow> * callback, SetupPayload & payload,
-                                       bool readVIDPIDAttributes = false);
+                                       uint16_t discriminator, Optional<uint32_t> setupPIN, Optional<ByteSpan> verifier, 
+                                       Optional<ByteSpan> salt, Callback::Callback<OnOpenCommissioningWindow> * callback, 
+                                       SetupPayload & payload, bool readVIDPIDAttributes = false);
 
     /**
      * @brief
