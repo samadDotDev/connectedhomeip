@@ -55,8 +55,8 @@ CHIP_ERROR CommissioningWindowOpener::OpenBasicCommissioningWindow(NodeId device
 }
 
 CHIP_ERROR CommissioningWindowOpener::OpenCommissioningWindow(NodeId deviceId, Seconds16 timeout, uint32_t iteration,
-                                                              uint16_t discriminator, Optional<uint32_t> setupPIN,
-                                                              Optional<ByteSpan> salt,
+                                                              uint16_t discriminator, Optional<uint32_t> setupPIN, 
+                                                              Optional<ByteSpan> verifier, Optional<ByteSpan> salt,
                                                               Callback::Callback<OnOpenCommissioningWindow> * callback,
                                                               SetupPayload & payload, bool readVIDPIDAttributes)
 {
@@ -67,6 +67,7 @@ CHIP_ERROR CommissioningWindowOpener::OpenCommissioningWindow(NodeId deviceId, S
         .iteration     = iteration,
         .discriminator = discriminator,
         .setupPIN      = setupPIN,
+        .verifier      = verifier,
         .salt          = salt,
         .callback      = callback,
     };
@@ -130,9 +131,17 @@ CHIP_ERROR CommissioningWindowOpener::OpenCommissioningWindowImpl(const Commissi
     mCommissioningWindowTimeout       = params.timeout;
     mPBKDFIterations                  = params.iteration;
 
-    bool randomSetupPIN = !params.setupPIN.HasValue();
-    ReturnErrorOnFailure(
-        PASESession::GeneratePASEVerifier(mVerifier, mPBKDFIterations, mPBKDFSalt, randomSetupPIN, mSetupPayload.setUpPINCode));
+    if (params.verifier.HasValue())
+    {
+        ChipLogProgress(NotSpecified, "Verifier size is %ld", params.verifier.Value().size());
+        ReturnErrorOnFailure(mVerifier.Deserialize(params.verifier.Value()));
+    }
+    else
+    {
+        bool randomSetupPIN = !params.setupPIN.HasValue();
+        ReturnErrorOnFailure(
+            PASESession::GeneratePASEVerifier(mVerifier, mPBKDFIterations, mPBKDFSalt, randomSetupPIN, mSetupPayload.setUpPINCode));
+    }
 
     payload = mSetupPayload;
 
@@ -376,8 +385,8 @@ CHIP_ERROR AutoCommissioningWindowOpener::OpenCommissioningWindow(DeviceControll
     }
 
     CHIP_ERROR err = opener->CommissioningWindowOpener::OpenCommissioningWindow(
-        deviceId, timeout, iteration, discriminator, setupPIN, salt, &opener->mOnOpenCommissioningWindowCallback, payload,
-        readVIDPIDAttributes);
+        deviceId, timeout, iteration, discriminator, setupPIN, chip::NullOptional, salt, &opener->mOnOpenCommissioningWindowCallback, 
+        payload, readVIDPIDAttributes);
     if (err != CHIP_NO_ERROR)
     {
         delete opener;

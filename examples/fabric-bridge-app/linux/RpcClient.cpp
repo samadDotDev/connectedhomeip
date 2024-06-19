@@ -91,7 +91,8 @@ CHIP_ERROR InitRpcClient(uint16_t rpcServerPort)
     return rpc::client::StartPacketProcessing();
 }
 
-CHIP_ERROR OpenCommissioningWindow(NodeId nodeId)
+CHIP_ERROR OpenCommissioningWindow(NodeId nodeId, uint16_t commissioningTimeout, uint16_t discriminator, uint32_t iterations, 
+                                   chip::Optional<chip::ByteSpan> salt, chip::Optional<chip::ByteSpan> verifier)
 {
     ChipLogProgress(NotSpecified, "OpenCommissioningWindow with Node Id 0x:" ChipLogFormatX64, ChipLogValueX64(nodeId));
 
@@ -101,9 +102,32 @@ CHIP_ERROR OpenCommissioningWindow(NodeId nodeId)
         return CHIP_ERROR_BUSY;
     }
 
-    chip_rpc_DeviceInfo device;
+    chip_rpc_DeviceCommissioningWindowInfo device;
     device.node_id = nodeId;
+    device.commissioning_timeout = commissioningTimeout;
+    device.discriminator = discriminator;
+    device.iterations = iterations;
 
+    if (salt.HasValue()) 
+    {
+        if (salt.Value().size() > sizeof(device.salt.bytes))
+        {
+            return CHIP_ERROR_INTERNAL;
+        }
+        memcpy(device.salt.bytes, salt.Value().data(), salt.Value().size());
+        device.salt.size = static_cast<pb_size_t>(salt.Value().size());
+    }
+
+    if (salt.HasValue()) 
+    {
+        if (verifier.Value().size() > sizeof(device.verifier.bytes))
+        {
+            return CHIP_ERROR_INTERNAL;
+        }
+        memcpy(device.verifier.bytes, verifier.Value().data(), verifier.Value().size());
+        device.verifier.size = static_cast<pb_size_t>(verifier.Value().size());
+    }
+    
     // The RPC will remain active as long as `openCommissioningWindowCall` is alive.
     openCommissioningWindowCall = fabricAdminClient.OpenCommissioningWindow(device, OnOpenCommissioningWindowCompleted);
 
