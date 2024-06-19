@@ -34,9 +34,10 @@ namespace {
 
 // Constants
 constexpr uint32_t kCommissionPrepareTimeMs = 500;
-constexpr uint16_t kMaxManaulCodeLength     = 11;
+constexpr uint16_t kMaxManaulCodeLength     = 21;
 constexpr uint16_t kSubscribeMinInterval    = 0;
 constexpr uint16_t kSubscribeMaxInterval    = 60;
+constexpr uint16_t kRemoteBridgePort        = 5540;
 
 } // namespace
 
@@ -80,9 +81,10 @@ CHIP_ERROR FabricSyncAddBridgeCommand::RunCommand(NodeId remoteId)
     }
 
     char command[kMaxCommandSize];
-    snprintf(command, sizeof(command), "pairing onnetwork %ld %d", remoteId, kSetupPinCode);
+    snprintf(command, sizeof(command), "pairing already-discovered %ld %d %s %d", remoteId, kSetupPinCode,
+             reinterpret_cast<const char *>(mRemoteAddr.data()), kRemoteBridgePort);
 
-    PairingCommand * pairingCommand = static_cast<PairingCommand *>(CommandMgr().GetCommandByName("pairing", "onnetwork"));
+    PairingCommand * pairingCommand = static_cast<PairingCommand *>(CommandMgr().GetCommandByName("pairing", "already-discovered"));
 
     if (pairingCommand == nullptr)
     {
@@ -197,6 +199,8 @@ void FabricSyncDeviceCommand::OnCommissioningComplete(chip::NodeId deviceId, CHI
 {
     if (mAssignedNodeId != deviceId)
     {
+        // Ignore if the deviceId does not match the mAssignedNodeId.
+        // This scenario should not occur because no other device should be commissioned during the fabric sync process.
         return;
     }
 
