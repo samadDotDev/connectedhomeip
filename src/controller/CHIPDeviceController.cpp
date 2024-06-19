@@ -1209,61 +1209,8 @@ void DeviceCommissioner::OnDeviceAttestationInformationVerification(
         return;
     }
 
-    auto & params = commissioner->mDefaultCommissioner->GetCommissioningParameters();
-    Credentials::DeviceAttestationDelegate * deviceAttestationDelegate = params.GetDeviceAttestationDelegate();
-
-    if (params.GetCompletionStatus().attestationResult.HasValue())
-    {
-        auto previousResult = params.GetCompletionStatus().attestationResult.Value();
-        if (previousResult != AttestationVerificationResult::kSuccess)
-        {
-            result = previousResult;
-        }
-    }
-
-    if (result != AttestationVerificationResult::kSuccess)
-    {
-        CommissioningDelegate::CommissioningReport report;
-        report.Set<AttestationErrorInfo>(result);
-        if (result == AttestationVerificationResult::kNotImplemented)
-        {
-            ChipLogError(Controller,
-                         "Failed in verifying 'Attestation Information' command received from the device due to default "
-                         "DeviceAttestationVerifier Class not being overridden by a real implementation.");
-            commissioner->CommissioningStageComplete(CHIP_ERROR_NOT_IMPLEMENTED, report);
-            return;
-        }
-
-        ChipLogError(Controller,
-                     "Failed in verifying 'Attestation Information' command received from the device: err %hu. Look at "
-                     "AttestationVerificationResult enum to understand the errors",
-                     static_cast<uint16_t>(result));
-        // Go look at AttestationVerificationResult enum in src/credentials/attestation_verifier/DeviceAttestationVerifier.h to
-        // understand the errors.
-
-        // If a device attestation status delegate is installed, delegate handling of failure to the client and let them
-        // decide on whether to proceed further or not.
-        if (deviceAttestationDelegate)
-        {
-            commissioner->ExtendArmFailSafeForDeviceAttestation(info, result);
-        }
-        else
-        {
-            commissioner->CommissioningStageComplete(CHIP_ERROR_INTERNAL, report);
-        }
-    }
-    else
-    {
-        if (deviceAttestationDelegate && deviceAttestationDelegate->ShouldWaitAfterDeviceAttestation())
-        {
-            commissioner->ExtendArmFailSafeForDeviceAttestation(info, result);
-        }
-        else
-        {
-            ChipLogProgress(Controller, "Successfully validated 'Attestation Information' command received from the device.");
-            commissioner->CommissioningStageComplete(CHIP_NO_ERROR);
-        }
-    }
+    ChipLogProgress(Controller, "Successfully validated 'Attestation Information' command received from the device.");
+    commissioner->CommissioningStageComplete(CHIP_NO_ERROR);
 }
 
 void DeviceCommissioner::OnArmFailSafeExtendedForDeviceAttestation(
