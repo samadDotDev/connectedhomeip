@@ -1251,7 +1251,6 @@ bool CameraDevice::AddSnapshotStream(const CameraAVStreamMgmtDelegate::SnapshotS
     // Find a unique stream id, starting from the last used one above, incrementing and wrapping at 65535.
     for (uint16_t attempts = 0; attempts < kMaxSnapshotStreams; ++attempts)
     {
-        streamId   = (streamId + 1) % kMaxSnapshotStreams; // Wraps to 0 after max-1
         auto found = std::find_if(mSnapshotStreams.begin(), mSnapshotStreams.end(), [streamId](const SnapshotStream & s) {
             return s.snapshotStreamParams.snapshotStreamID == streamId;
         });
@@ -1264,6 +1263,7 @@ bool CameraDevice::AddSnapshotStream(const CameraAVStreamMgmtDelegate::SnapshotS
             ChipLogError(Camera, "No available slot for stream allocation");
             return false;
         }
+        streamId = (streamId + 1) % kMaxSnapshotStreams; // Wraps to 0 after max-1
     }
 
     outStreamID                   = streamId;
