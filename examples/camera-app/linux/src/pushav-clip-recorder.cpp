@@ -41,8 +41,7 @@ AVDictionary * options = NULL;
 
 PushAVClipRecorder::PushAVClipRecorder(ClipInfoStruct & aClipInfo, AudioInfoStruct & aAudioInfo, VideoInfoStruct & aVideoInfo,
                                        PushAVUploader * aUploader) :
-    mClipInfo(aClipInfo),
-    mAudioInfo(aAudioInfo), mVideoInfo(aVideoInfo), mUploader(aUploader)
+    mClipInfo(aClipInfo), mAudioInfo(aAudioInfo), mVideoInfo(aVideoInfo), mUploader(aUploader)
 {
 
     mVideoInfo.mVideoPts  = 0;
@@ -370,7 +369,7 @@ int PushAVClipRecorder::AddStreamToOutput(AVMediaType type)
         mVideoStream->codecpar->codec_tag = 0;
         mVideoStream->codecpar->width     = mVideoInfo.mWidth;
         mVideoStream->codecpar->height    = mVideoInfo.mHeight;
-        mVideoStream->avg_frame_rate      = (AVRational){ mVideoInfo.mFrameRate, 1 };
+        mVideoStream->avg_frame_rate      = (AVRational) { mVideoInfo.mFrameRate, 1 };
     }
     else if (type == AVMEDIA_TYPE_AUDIO)
     {
@@ -409,7 +408,7 @@ int PushAVClipRecorder::AddStreamToOutput(AVMediaType type)
 
         mAudioEncoderContext->bit_rate              = mAudioInfo.mBitRate;
         mAudioEncoderContext->sample_fmt            = audioCodec->sample_fmts[0];
-        mAudioEncoderContext->time_base             = (AVRational){ 1, mAudioInfo.mSampleRate };
+        mAudioEncoderContext->time_base             = (AVRational) { 1, mAudioInfo.mSampleRate };
         mAudioEncoderContext->strict_std_compliance = FF_COMPLIANCE_EXPERIMENTAL;
         AVDictionary * opts                         = NULL;
         av_dict_set(&opts, "strict", "experimental", 0);
@@ -630,20 +629,20 @@ void PushAVClipRecorder::FinalizeCurrentClip(int reason)
 
     // Helper function for safe path formatting
     char path_buffer[512];
-    auto make_path = [&](const char * format, int number = -1) -> std::string {
+    auto make_path = [&](const char * path, const char * extension, int number = -1) -> std::string {
         if (number >= 0)
         {
-            snprintf(path_buffer, sizeof(path_buffer), format, basePath.c_str(), number);
+            snprintf(path_buffer, sizeof(path_buffer), "%s%s-%05d.%s", basePath.c_str(), path, number, extension);
         }
         else
         {
-            snprintf(path_buffer, sizeof(path_buffer), format, basePath.c_str());
+            snprintf(path_buffer, sizeof(path_buffer), "%s%s.%s", basePath.c_str(), path, extension);
         }
         return std::string(path_buffer);
     };
 
     // 1. Handle initialization files
-    std::string fmp4_path = make_path("%s_init-stream0.fmp4");
+    std::string fmp4_path = make_path("_init-stream0", "fmp4");
     if (mUploadedInitSegment && FileExists(fmp4_path) && !FileExists(fmp4_path + ".tmp"))
     {
         mUploadedInitSegment = false;
@@ -651,7 +650,7 @@ void PushAVClipRecorder::FinalizeCurrentClip(int reason)
 
         if (mClipInfo.mHasAudio)
         {
-            std::string audio_fmp4 = make_path("%s_init-stream1.fmp4");
+            std::string audio_fmp4 = make_path("_init-stream1", "fmp4");
             if (FileExists(audio_fmp4) && !FileExists(audio_fmp4 + ".tmp"))
             {
                 CheckAndUploadFile(audio_fmp4);
@@ -660,7 +659,7 @@ void PushAVClipRecorder::FinalizeCurrentClip(int reason)
     }
 
     // 2. Handle video fragments
-    std::string video_cmfv = make_path("%s_chunk-stream0-%05d.cmfv", mVideoFragment);
+    std::string video_cmfv = make_path("%_chunk-stream0", "cmfv", mVideoFragment);
     while (FileExists(video_cmfv) && !FileExists(video_cmfv + ".tmp"))
     {
         if (mVideoFragment == 1)
@@ -670,26 +669,26 @@ void PushAVClipRecorder::FinalizeCurrentClip(int reason)
         mUploadMPD = true;
         CheckAndUploadFile(video_cmfv);
         mVideoFragment++;
-        video_cmfv = make_path("%s_chunk-stream0-%05d.cmfv", mVideoFragment);
+        video_cmfv = make_path("_chunk-stream0", "cmfv", mVideoFragment);
     }
 
     // 3. Handle audio fragments
     if (mClipInfo.mHasAudio)
     {
-        std::string audio_cmfv = make_path("%s_chunk-stream1-%05d.cmfv", mAudioFragment);
+        std::string audio_cmfv = make_path("_chunk-stream1", "cmfv", mAudioFragment);
         while (FileExists(audio_cmfv) && !FileExists(audio_cmfv + ".tmp"))
         {
             mUploadMPD = true;
             CheckAndUploadFile(audio_cmfv);
             mAudioFragment++;
-            audio_cmfv = make_path("%s_chunk-stream1-%05d.cmfv", mAudioFragment);
+            audio_cmfv = make_path("_chunk-stream1", "cmfv", mAudioFragment);
         }
     }
 
     // 4. Handle MPD file
     if (mUploadMPD)
     {
-        std::string mpd_path = make_path("%s.mpd");
+        std::string mpd_path = make_path("", "mpd");
         if (FileExists(mpd_path) && !FileExists(mpd_path + ".tmp"))
         {
             CheckAndUploadFile(mpd_path);
