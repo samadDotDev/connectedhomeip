@@ -151,6 +151,12 @@ ActiveTCPConnectionState * TCPBase::AllocateConnection(const Inet::TCPEndPointHa
         for (size_t i = 0; i < mActiveConnectionsSize; i++)
         {
             ActiveTCPConnectionState * activeConnection = &mActiveConnections[i];
+
+            char addrStr[Transport::PeerAddress::kMaxToStringSize];
+            activeConnection->mPeerAddr.ToString(addrStr);
+            ChipLogError(Inet, "TCP connection %p, in-use: %s, ref count: %u, address: %s.", activeConnection,
+                         activeConnection->InUse() ? "true" : "false", activeConnection->GetReferenceCount(), addrStr);
+
             if (!activeConnection->InUse() && (activeConnection->GetReferenceCount() != 0))
             {
                 char addrStr[Transport::PeerAddress::kMaxToStringSize];
