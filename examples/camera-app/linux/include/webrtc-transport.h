@@ -29,6 +29,7 @@
 
 using OnTransportLocalDescriptionCallback = std::function<void(const std::string & sdp, SDPType type, const int16_t sessionId)>;
 using OnTransportConnectionStateCallback  = std::function<void(bool connected, const int16_t sessionId)>;
+using OnTransportGatheringStateCallback   = std::function<void(bool gatheringComplete, const int16_t sessionId)>;
 
 // Derived class for WebRTC transport
 class WebrtcTransport : public Transport
@@ -67,7 +68,8 @@ public:
 
     ~WebrtcTransport();
 
-    void SetCallbacks(OnTransportLocalDescriptionCallback onLocalDescription, OnTransportConnectionStateCallback onConnectionState);
+    void SetCallbacks(OnTransportLocalDescriptionCallback onLocalDescription, OnTransportConnectionStateCallback onConnectionState,
+                      OnTransportGatheringStateCallback onGatheringState = nullptr);
 
     void MoveToState(const State targetState);
     const char * GetStateStr() const;
@@ -126,6 +128,7 @@ public:
     void OnLocalDescription(const std::string & sdp, SDPType type);
     void OnICECandidate(const ICECandidateInfo & candidateInfo);
     void OnConnectionStateChanged(bool connected);
+    void OnGatheringStateChanged(bool gatheringComplete);
     void OnTrack(std::shared_ptr<WebRTCTrack> track);
 
     void SetRequestArgs(const RequestArgs & args);
@@ -149,6 +152,7 @@ private:
     OnTransportLocalDescriptionCallback mOnLocalDescription = nullptr;
     OnTransportConnectionStateCallback mOnConnectionState   = nullptr;
     std::vector<ICEServerInfo> mICEServers;
+    OnTransportGatheringStateCallback mOnGatheringState = nullptr;
 
     std::mutex mTrackStatusLock;
 };

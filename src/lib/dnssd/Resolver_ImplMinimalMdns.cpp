@@ -216,11 +216,13 @@ void PacketParser::ParseSRVResource(const ResourceData & data)
             // Receiving records that we do not need to parse is normal:
             // MinMDNS may receive all DNSSD packets on the network, only
             // interested in a subset that is matter-specific
+#if CHIP_MINMDNS_HIGH_VERBOSITY
             if (err != CHIP_ERROR_UNSUPPORTED_DNSSD_SERVICE_NAME)
             {
                 ChipLogError(Discovery, "Could not start SRV record processing: %" CHIP_ERROR_FORMAT, err.Format());
                 ChipLogByteSpan(Discovery, data.GetData().AsByteSpan());
             }
+#endif
         }
 
         // Done finding an inactive resolver and attempting to use it.
