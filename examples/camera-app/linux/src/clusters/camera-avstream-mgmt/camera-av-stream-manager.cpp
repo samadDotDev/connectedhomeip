@@ -350,9 +350,25 @@ Protocols::InteractionModel::Status CameraAVStreamManager::VideoStreamAllocate(c
     outStreamID                                 = kInvalidStreamID;
     bool isRequestSupportedByAnyAvailableStream = false;
 
+    ChipLogProgress(Camera,
+                    "VideoStreamAllocate request: codec=%u, frameRate=[%u-%u], resolution=[%ux%u - %ux%u], bitRate=[%u-%u], "
+                    "keyFrameInterval=%u",
+                    static_cast<unsigned>(allocateArgs.videoCodec), allocateArgs.minFrameRate, allocateArgs.maxFrameRate,
+                    allocateArgs.minResolution.width, allocateArgs.minResolution.height, allocateArgs.maxResolution.width,
+                    allocateArgs.maxResolution.height, allocateArgs.minBitRate, allocateArgs.maxBitRate,
+                    allocateArgs.keyFrameInterval);
+
     // Check if allocation request can be supported
     for (const auto & stream : mCameraDeviceHAL->GetCameraHALInterface().GetAvailableVideoStreams())
     {
+        const auto & p = stream.videoStreamParams;
+        ChipLogProgress(Camera,
+                        "HAL VideoStream ID=%u: allocated=%s, codec=%u, frameRate=[%u-%u], resolution=[%ux%u - %ux%u], "
+                        "bitRate=[%u-%u], keyFrameInterval=%u",
+                        p.videoStreamID, stream.isAllocated ? "yes" : "no", static_cast<unsigned>(p.videoCodec), p.minFrameRate,
+                        p.maxFrameRate, p.minResolution.width, p.minResolution.height, p.maxResolution.width,
+                        p.maxResolution.height, p.minBitRate, p.maxBitRate, p.keyFrameInterval);
+
         if (stream.IsCompatible(allocateArgs))
         {
             isRequestSupportedByAnyAvailableStream = true;
