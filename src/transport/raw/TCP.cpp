@@ -51,6 +51,25 @@ constexpr uint32_t kMaxTCPMessageSize =
 
 constexpr int kListenBacklogSize = 2;
 
+const char * TCPStateToString(TCPState state)
+{
+    switch (state)
+    {
+    case TCPState::kNotReady:
+        return "Not Ready";
+    case TCPState::kInitialized:
+        return "Initialized";
+    case TCPState::kConnecting:
+        return "Connecting";
+    case TCPState::kConnected:
+        return "Connected";
+    case TCPState::kClosed:
+        return "Closed";
+    default:
+        return "unknown";
+    }
+}
+
 CHIP_ERROR GetPeerAddress(Inet::TCPEndPoint & endPoint, PeerAddress & outAddr)
 {
     Inet::IPAddress ipAddress;
@@ -154,8 +173,9 @@ ActiveTCPConnectionState * TCPBase::AllocateConnection(const Inet::TCPEndPointHa
 
             char addrStr[Transport::PeerAddress::kMaxToStringSize];
             activeConnection->mPeerAddr.ToString(addrStr);
-            ChipLogError(Inet, "TCP connection %p, in-use: %s, ref count: %u, address: %s.", activeConnection,
-                         activeConnection->InUse() ? "true" : "false", activeConnection->GetReferenceCount(), addrStr);
+            ChipLogError(Inet, "TCP connection %p, in-use: %s, ref count: %u, state: %s, address: %s.", activeConnection,
+                         activeConnection->InUse() ? "true" : "false", activeConnection->GetReferenceCount(),
+                         TCPStateToString(activeConnection->mConnectionState), addrStr);
 
             if (!activeConnection->InUse() && (activeConnection->GetReferenceCount() != 0))
             {
