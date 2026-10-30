@@ -64,6 +64,29 @@ pkg_config("gstreamer") {
   ]
 }
 
+config("exceptions") {
+  cflags_cc = [ "-fexceptions" ]
+}
+
+# libdatachannel reports runtime errors (e.g. sending on a track whose transport
+# closed on a libdatachannel thread) by throwing, so its wrapper must be able to
+# catch them.
+source_set("webrtc-libdatachannel") {
+  sources = [ "src/webrtc-libdatachannel.cpp" ]
+
+  configs += [
+    ":config",
+    ":exceptions",
+  ]
+
+  deps = [
+    "${chip_root}/examples/camera-app/camera-common",
+    "${chip_root}/examples/platform/linux:app-main",
+    "${chip_root}/src/lib",
+    "${chip_root}/third_party/libdatachannel",
+  ]
+}
+
 executable("chip-camera-app") {
   configs += [ ":config" ]
 
@@ -90,18 +113,18 @@ executable("chip-camera-app") {
     "${chip_root}/examples/camera-app/linux/src/pushav-prerollbuffer.cpp",
     "${chip_root}/examples/camera-app/linux/src/pushav-transport/pushav-transport.cpp",
     "${chip_root}/examples/camera-app/linux/src/uploader/pushav-uploader.cpp",
-    "${chip_root}/examples/camera-app/linux/src/webrtc-libdatachannel.cpp",
     "${chip_root}/examples/camera-app/linux/src/webrtc-transport.cpp",
     "include/CHIPProjectAppConfig.h",
     "main.cpp",
   ]
 
   deps = [
+    ":webrtc-libdatachannel",
     "${chip_root}/examples/camera-app/camera-common",
     "${chip_root}/examples/camera-app/camera-common:camera-lib",
     "${chip_root}/examples/platform/linux:app-main",
     "${chip_root}/src/lib",
-    "${chip_root}/third_party/libdatachannel:libdatachannel",
+    "${chip_root}/third_party/libdatachannel",
   ]
 
   output_dir = root_out_dir

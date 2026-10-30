@@ -210,7 +210,15 @@ public:
             // Feed RAW H.264 access unit. Packetizer does NAL split, FU-A/STAP-A, RTP headers, marker bit, SR/NACK.
             rtc::binary frame(data.size());
             std::memcpy(frame.data(), data.data(), data.size());
-            mTrack->send(std::move(frame));
+            try
+            {
+                mTrack->send(std::move(frame));
+            }
+            catch (const std::exception & e)
+            {
+                // The track can close on a libdatachannel thread after the isOpen() check.
+                ChipLogError(Camera, "Failed to send data: %s", e.what());
+            }
         }
         else
         {
@@ -241,7 +249,15 @@ public:
         rtc::binary frame(data.size());
         std::memcpy(frame.data(), data.data(), data.size());
         rtc::FrameInfo info(timestamp);
-        mTrack->sendFrame(std::move(frame), info);
+        try
+        {
+            mTrack->sendFrame(std::move(frame), info);
+        }
+        catch (const std::exception & e)
+        {
+            // The track can close on a libdatachannel thread after the IsReady() check.
+            ChipLogError(Camera, "Failed to send frame: %s", e.what());
+        }
     }
 
     bool IsReady() override { return mTrack != nullptr && mTrack->isOpen(); }
