@@ -20,7 +20,9 @@
 #include <Options.h>
 #include <arpa/inet.h>
 #include <lib/support/logging/CHIPLogging.h>
+#include <optional>
 #include <rtc/rtc.hpp>
+#include <vector>
 
 namespace {
 
@@ -388,12 +390,36 @@ public:
 
     void CreateOffer() override { mPeerConnection->setLocalDescription(); }
 
-    void CreateAnswer() override { mPeerConnection->createAnswer(); }
+    void CreateAnswer() override
+    {
+        try
+        {
+            mPeerConnection->createAnswer();
+        }
+        catch (const std::exception & e)
+        {
+            ChipLogError(Camera, "Failed to create answer: %s", e.what());
+        }
+    }
 
     void SetRemoteDescription(const std::string & sdp, SDPType type) override
     {
         rtc::Description::Type rtcType = SDPTypeToRtcType(type);
-        mPeerConnection->setRemoteDescription(rtc::Description(sdp, rtcType));
+        try
+        {
+            mPeerConnection->setRemoteDescription(rtc::Description(sdp, rtcType));
+        }
+        catch (const std::exception & e)
+        {
+            ChipLogError(Camera, "Failed to set remote description: %s", e.what());
+            return;
+        }
+
+        for (auto & candidate : mPendingRemoteCandidates)
+        {
+            ApplyRemoteCandidate(std::move(candidate));
+        }
+        mPendingRemoteCandidates.clear();
     }
 
     int GetPayloadType(const std::string & sdp, SDPType type, const std::string & codec) override
@@ -444,14 +470,26 @@ public:
 
     void AddRemoteCandidate(const std::string & candidate, const std::string & mid) override
     {
-        if (mid.empty())
+        std::optional<rtc::Candidate> rtcCandidate;
+        try
         {
-            mPeerConnection->addRemoteCandidate(rtc::Candidate(candidate));
+            rtcCandidate = mid.empty() ? rtc::Candidate(candidate) : rtc::Candidate(candidate, mid);
         }
-        else
+        catch (const std::exception & e)
         {
-            mPeerConnection->addRemoteCandidate(rtc::Candidate(candidate, mid));
+            ChipLogError(Camera, "Failed to parse remote candidate: %s", e.what());
+            return;
         }
+
+        // Candidates and the remote description arrive in separate commands, so candidates can come first.
+        if (!mPeerConnection->remoteDescription().has_value())
+        {
+            ChipLogProgress(Camera, "Remote description not set, queuing remote candidate");
+            mPendingRemoteCandidates.push_back(std::move(*rtcCandidate));
+            return;
+        }
+
+        ApplyRemoteCandidate(std::move(*rtcCandidate));
     }
 
     std::shared_ptr<WebRTCTrack> AddTrack(MediaType mediaType, const std::string & mid, int payloadType) override
@@ -481,7 +519,20 @@ public:
     }
 
 private:
+    void ApplyRemoteCandidate(rtc::Candidate candidate)
+    {
+        try
+        {
+            mPeerConnection->addRemoteCandidate(std::move(candidate));
+        }
+        catch (const std::exception & e)
+        {
+            ChipLogError(Camera, "Failed to add remote candidate: %s", e.what());
+        }
+    }
+
     std::shared_ptr<rtc::PeerConnection> mPeerConnection;
+    std::vector<rtc::Candidate> mPendingRemoteCandidates;
 };
 
 } // namespace
